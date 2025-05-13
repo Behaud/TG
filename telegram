@@ -1,0 +1,75 @@
+import asyncio
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters import Command
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.utils.throttled import Throttled
+from aiogram import F
+
+# Инициализация бота
+# ***ВАШ_ТОКЕН***: Вставьте токен, полученный от @BotFather
+bot = Bot(token='7970719008:AAH23QZz6Vf070bzr_9jhQunDMBx8k8fXG8')
+dp = Dispatcher()
+
+# --- Заготовка для функции хранения данных (деактивирована) ---
+# Описание: Функция для хранения данных (например, в SQLite или JSON).
+# Будет активирована позже, когда вы укажете требования.
+# ***ПОЛЕ_ДЛЯ_ФУНКЦИИ_ХРАНЕНИЯ_ДАННЫХ***
+# Пример (закомментировано, не выполняется):
+# import sqlite3
+# def save_user_data(user_id, data):
+#     conn = sqlite3.connect('bot_data.db')
+#     c = conn.cursor()
+#     c.execute("INSERT INTO users (user_id, data) VALUES (?, ?)", (user_id, data))
+#     conn.commit()
+#     conn.close()
+
+# Функция для перевода текста в азбуку Морзе
+def text_to_morse(text):
+    morse_code = {
+        'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.',
+        'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..',
+        'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.',
+        'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-',
+        'Y': '-.--', 'Z': '--..', ' ': ' '
+    }
+    return ' '.join(morse_code.get(char.upper(), '') for char in text)
+
+# Защита от спама: ограничение 1 сообщение в секунду
+@dp.message_handler()
+@Throttled(rate=1)
+async def handle_spam(message: types.Message):
+    pass  # Пустая функция для активации защиты от спама
+
+# Обработчик команды /start
+@dp.message_handler(Command("start"))
+async def send_welcome(message: types.Message):
+    # Создание кнопки для запуска приложения
+    # ***ССЫЛКА_НА_ПРИЛОЖЕНИЕ***: Вставьте URL вашего приложения, когда оно будет готово
+    keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
+    app_button = KeyboardButton(text="Launch App", url="***ССЫЛКА_НА_ПРИЛОЖЕНИЕ***")
+    keyboard.add(app_button)
+    
+    await message.answer("Hello! I’m happy to see you again.", reply_markup=keyboard)
+
+# Обработчик команды /info
+@dp.message_handler(Command("info"))
+async def send_info(message: types.Message):
+    # ***ИНФОРМАЦИЯ_О_ТОКЕНЕ***: Вставьте текст с информацией о токене, когда он будет готов
+    await message.answer("***ИНФОРМАЦИЯ_О_ТОКЕНЕ***")
+
+# Обработчик некомандных сообщений
+@dp.message_handler(F.text)
+async def handle_text(message: types.Message):
+    # Ответ в азбуке Морзе для "I DON’T UNDERSTAND YOU"
+    morse_message = text_to_morse("I DONT UNDERSTAND YOU")
+    await message.answer(morse_message)
+
+# Запуск бота
+async def main():
+    try:
+        await dp.start_polling(bot)
+    finally:
+        await bot.session.close()
+
+if __name__ == '__main__':
+    asyncio.run(main())
